@@ -117,3 +117,22 @@ function updateMouth(state) {
     mouth.style.transform = "translateX(calc(-50% + 2px)) rotate(5deg)";
   }
 }
+
+// ---- Messages idle automatiques ----
+
+(function scheduleIdleMessages() {
+  function showNextIdle() {
+    const delay = 15000 + Math.random() * 20000; // 15-35 secondes
+    setTimeout(() => {
+      setState("idle");
+      showNextIdle();
+    }, delay);
+  }
+  showNextIdle();
+})();
+
+// ---- Message de bienvenue au démarrage ----
+
+setTimeout(() => {
+  setState("waving", "Salut ! Je suis Navi, ton assistante ! ✨");
+}, 500);
