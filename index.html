@@ -13,5 +13,40 @@
     <link rel="stylesheet" href="css/animations.css" />
     <link rel="stylesheet" href="css/ui.css" />
   </head>
-  <body></body>
+  <body>
+    <!-- Étoiles de fond générées par JS -->
+    <div class="stars" id="stars"></div>
+
+    <div class="scene">
+      <h1>✨ Navi</h1>
+      <p class="subtitle">Préview — Phase 1 de ton assistant anime</p>
+
+      <div class="preview-card">
+        <!-- Bulle de dialogue -->
+        <div class="dialog-bubble" id="bubble">
+          <p id="bubble-text">Salut ! Je suis Navi~ ✨</p>
+        </div>
+
+        <!-- Avatar principal -->
+        <div class="avatar waving" id="avatar" onclick="handleClick()">
+          <div class="avatar__shadow"></div>
+
+          <!-- Particules (ajoutées par JS) -->
+          <div class="particles" id="particles"></div>
+        </div>
+        <!-- /#avatar -->
+
+        <p class="info">
+          👆 Clique sur l'avatar ou les boutons pour voir les animations.<br />
+          Dans l'app Electron, il flottera sur ton bureau Windows !
+        </p>
+      </div>
+      <!-- /.preview-card -->
+    </div>
+    <!-- /.scene -->
+
+    <!-- Scripts séparés -->
+    <script src="js/stars.js"></script>
+    <script src="js/avatar.js"></script>
+  </body>
 </html>
