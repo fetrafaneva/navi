@@ -1,0 +1,94 @@
+/* ================================
+   base.css — Variables & Layout
+   ================================ */
+
+:root {
+  /* Couleurs avatar */
+  --hair-color: #c0392b;
+  --hair-shadow: #922b21;
+  --skin-color: #fde8d8;
+  --skin-shadow: #f5cba7;
+  --eye-color: #1a6b9a;
+  --uniform-main: #2c3e8c;
+  --uniform-accent: #e74c3c;
+  --uniform-white: #ecf0f1;
+
+  /* Couleurs UI */
+  --bubble-bg: #fff9fe;
+  --bubble-border: #e8b4d8;
+  --accent-pink: #ff6b9d;
+  --text-dark: #5a3a5e;
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Page */
+body {
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: "Nunito", sans-serif;
+  color: white;
+  overflow: hidden;
+}
+
+/* Étoiles de fond */
+.stars {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.star {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  animation: twinkle var(--d) ease-in-out infinite;
+}
+
+/* Scène principale */
+.scene {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff6b9d, #c44dff, #6b9dff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+  letter-spacing: -1px;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 30px;
+}
+
+/* Carte de préview */
+.preview-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 30px 40px;
+  backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}

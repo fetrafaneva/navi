@@ -1,0 +1,159 @@
+/* ================================
+   animations.css — Keyframes & états
+   ================================ */
+
+/* ---- Keyframes ---- */
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes blink {
+  0%,
+  90%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+
+@keyframes armSwing {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes starFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-8px) rotate(20deg);
+    opacity: 0.7;
+  }
+}
+
+@keyframes particleFloat {
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-60px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes bubbleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.7) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
+}
+
+@keyframes jump {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  30% {
+    transform: translateX(-50%) translateY(-22px) rotate(-3deg);
+  }
+  70% {
+    transform: translateX(-50%) translateY(-10px) rotate(3deg);
+  }
+}
+
+@keyframes waveArm {
+  0% {
+    transform: rotate(-25deg);
+  }
+  100% {
+    transform: rotate(25deg);
+  }
+}
+
+@keyframes mouthTalk {
+  from {
+    height: 5px;
+  }
+  to {
+    height: 11px;
+  }
+}
+
+@keyframes lookAround {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(3px);
+  }
+  75% {
+    transform: translateX(-3px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* ---- États de l'avatar ---- */
+
+/* Happy : saut joyeux */
+.avatar.happy .character {
+  animation: jump 0.5s ease-in-out;
+}
+
+/* Waving : bras qui salue */
+.avatar.waving .arm.right {
+  animation: waveArm 0.4s ease-in-out infinite alternate !important;
+  transform-origin: top center;
+}
+
+/* Talking : bouche animée (appliqué via JS sur #mouth) */
+.mouth.talking {
+  background: #d35a7a;
+  border-bottom: none;
+  border-radius: 0 0 10px 10px;
+  animation: mouthTalk 0.2s ease-in-out infinite alternate;
+}
+
+/* Thinking : yeux qui cherchent */
+.avatar.thinking .eye-iris {
+  animation: lookAround 2s ease-in-out infinite;
+}
+
+/* Hover sur l'avatar */
+.avatar:hover .character {
+  filter: drop-shadow(0 0 12px rgba(255, 107, 157, 0.5));
+}
