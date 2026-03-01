@@ -63,3 +63,26 @@ function setState(state, msg) {
     mouth.style.cssText = "";
   }, 5000);
 }
+
+/**
+ * Réaction au clic direct sur l'avatar.
+ */
+function handleClick() {
+  const reaction = pickRandom(CLICK_REACTIONS);
+  setState(reaction.state, reaction.msg);
+}
+
+// ---- Helpers ----
+
+/** Retourne un élément aléatoire d'un tableau. */
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+/** Relance l'animation CSS d'un élément. */
+function restartAnimation(el) {
+  el.style.animation = "none";
+  requestAnimationFrame(() => {
+    el.style.animation = "";
+  });
+}
