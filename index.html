@@ -97,6 +97,40 @@
         </div>
         <!-- /#avatar -->
 
+        <!-- Boutons de contrôle -->
+        <div class="controls">
+          <button
+            class="btn btn-waving"
+            onclick="setState('waving',  'Coucou ! 👋')"
+          >
+            Saluer
+          </button>
+          <button
+            class="btn btn-talking"
+            onclick="setState('talking', 'Je traite ta demande... 💬')"
+          >
+            Parler
+          </button>
+          <button
+            class="btn btn-happy"
+            onclick="setState('happy',   'Yaaay ! ✨🎉')"
+          >
+            Joyeux
+          </button>
+          <button
+            class="btn btn-think"
+            onclick="setState('thinking','Hmm... 🤔')"
+          >
+            Réfléchir
+          </button>
+          <button
+            class="btn btn-idle"
+            onclick="setState('idle',    'Je veille sur toi~ 💤')"
+          >
+            Idle
+          </button>
+        </div>
+
         <p class="info">
           👆 Clique sur l'avatar ou les boutons pour voir les animations.<br />
           Dans l'app Electron, il flottera sur ton bureau Windows !
