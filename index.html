@@ -13,5 +13,135 @@
     <link rel="stylesheet" href="css/animations.css" />
     <link rel="stylesheet" href="css/ui.css" />
   </head>
-  <body></body>
+  <body>
+    <!-- Étoiles de fond générées par JS -->
+    <div class="stars" id="stars"></div>
+
+    <div class="scene">
+      <h1>✨ Navi</h1>
+      <p class="subtitle">Préview — Phase 1 de ton assistant anime</p>
+
+      <div class="preview-card">
+        <!-- Bulle de dialogue -->
+        <div class="dialog-bubble" id="bubble">
+          <p id="bubble-text">Salut ! Je suis Navi~ ✨</p>
+        </div>
+
+        <!-- Avatar principal -->
+        <div class="avatar waving" id="avatar" onclick="handleClick()">
+          <div class="avatar__shadow"></div>
+
+          <div class="character" id="character">
+            <!-- Cheveux arrière -->
+            <div class="hair-back"></div>
+
+            <!-- Corps -->
+            <div class="body">
+              <div class="collar"></div>
+              <div class="bow"></div>
+              <div class="arm left"></div>
+              <div class="arm right" id="arm-right"></div>
+            </div>
+
+            <!-- Tête -->
+            <div class="head">
+              <div class="hair-top"></div>
+              <div class="hair-side left"></div>
+              <div class="hair-side right"></div>
+              <div class="hair-bang bl"></div>
+              <div class="hair-bang br"></div>
+              <div class="hair-bang center"></div>
+
+              <div class="face">
+                <div class="eyes">
+                  <div class="eye">
+                    <div class="eye-white">
+                      <div class="eye-iris"></div>
+                      <div class="eye-pupil"></div>
+                      <div class="eye-shine"></div>
+                    </div>
+                    <div class="eyelash"></div>
+                  </div>
+                  <div class="eye">
+                    <div class="eye-white">
+                      <div class="eye-iris"></div>
+                      <div class="eye-pupil"></div>
+                      <div class="eye-shine"></div>
+                    </div>
+                    <div class="eyelash"></div>
+                  </div>
+                </div>
+                <div class="nose"></div>
+                <div class="mouth" id="mouth"></div>
+                <div class="blush left"></div>
+                <div class="blush right"></div>
+              </div>
+
+              <div class="ear left"></div>
+              <div class="ear right"></div>
+            </div>
+
+            <!-- Accessoire étoile -->
+            <div class="star-acc">★</div>
+
+            <!-- Jambes -->
+            <div class="legs">
+              <div class="leg"><div class="shoe"></div></div>
+              <div class="leg"><div class="shoe"></div></div>
+            </div>
+          </div>
+          <!-- /.character -->
+
+          <!-- Particules (ajoutées par JS) -->
+          <div class="particles" id="particles"></div>
+        </div>
+        <!-- /#avatar -->
+
+        <!-- Boutons de contrôle -->
+        <div class="controls">
+          <button
+            class="btn btn-waving"
+            onclick="setState('waving',  'Coucou ! 👋')"
+          >
+            Saluer
+          </button>
+          <button
+            class="btn btn-talking"
+            onclick="setState('talking', 'Je traite ta demande... 💬')"
+          >
+            Parler
+          </button>
+          <button
+            class="btn btn-happy"
+            onclick="setState('happy',   'Yaaay ! ✨🎉')"
+          >
+            Joyeux
+          </button>
+          <button
+            class="btn btn-think"
+            onclick="setState('thinking','Hmm... 🤔')"
+          >
+            Réfléchir
+          </button>
+          <button
+            class="btn btn-idle"
+            onclick="setState('idle',    'Je veille sur toi~ 💤')"
+          >
+            Idle
+          </button>
+        </div>
+
+        <p class="info">
+          👆 Clique sur l'avatar ou les boutons pour voir les animations.<br />
+          Dans l'app Electron, il flottera sur ton bureau Windows !
+        </p>
+      </div>
+      <!-- /.preview-card -->
+    </div>
+    <!-- /.scene -->
+
+    <!-- Scripts séparés -->
+    <script src="js/stars.js"></script>
+    <script src="js/avatar.js"></script>
+  </body>
 </html>
