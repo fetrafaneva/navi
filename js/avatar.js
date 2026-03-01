@@ -86,3 +86,17 @@ function restartAnimation(el) {
     el.style.animation = "";
   });
 }
+
+/** Affiche ou vide les particules selon l'état. */
+function updateParticles(state) {
+  particles.innerHTML = "";
+
+  if (state === "happy") {
+    ["✨", "⭐", "💫"].forEach((emoji) => {
+      const p = document.createElement("span");
+      p.className = "particle";
+      p.textContent = emoji;
+      particles.appendChild(p);
+    });
+  }
+}
