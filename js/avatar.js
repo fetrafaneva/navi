@@ -38,3 +38,28 @@ let resetTimer = null;
  * @param {string} state  - 'idle' | 'talking' | 'happy' | 'waving' | 'thinking'
  * @param {string} [msg]  - Message personnalisé (optionnel)
  */
+function setState(state, msg) {
+  // Choisit un message aléatoire si aucun n'est fourni
+  const text = msg || pickRandom(MESSAGES[state] || MESSAGES.idle);
+
+  // Met à jour la classe de l'avatar
+  avatar.className = `avatar ${state}`;
+
+  // Met à jour la bulle avec animation
+  bubbleText.textContent = text;
+  restartAnimation(bubble);
+
+  // Gère les particules
+  updateParticles(state);
+
+  // Gère le style de la bouche
+  updateMouth(state);
+
+  // Retour à l'état idle après 5 secondes
+  clearTimeout(resetTimer);
+  resetTimer = setTimeout(() => {
+    avatar.className = "avatar idle";
+    mouth.className = "mouth";
+    mouth.style.cssText = "";
+  }, 5000);
+}
