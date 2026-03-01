@@ -100,3 +100,20 @@ function updateParticles(state) {
     });
   }
 }
+
+/** Modifie le style de la bouche selon l'état. */
+function updateMouth(state) {
+  // Réinitialise
+  mouth.style.cssText = "";
+  mouth.className = "mouth";
+
+  if (state === "talking") {
+    mouth.className = "mouth talking";
+  } else if (state === "happy" || state === "waving") {
+    mouth.style.width = "18px";
+    mouth.style.height = "9px";
+  } else if (state === "thinking") {
+    mouth.style.width = "10px";
+    mouth.style.transform = "translateX(calc(-50% + 2px)) rotate(5deg)";
+  }
+}
