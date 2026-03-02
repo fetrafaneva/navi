@@ -34,4 +34,24 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(path.join(__dirname, "renderer/index.html"));
   }
+
+  // ---- Handlers IPC ----
+
+  // Déplacer la fenêtre
+  ipcMain.on("move-window", (_event, { x, y }) => {
+    mainWindow?.setPosition(x, y);
+  });
+
+  // Fermer l'app
+  ipcMain.on("quit-app", () => {
+    app.quit();
+  });
+
+  // 🆕 Fournir la config ElevenLabs au renderer (sans exposer les clés dans le HTML)
+  ipcMain.handle("get-voice-config", () => {
+    return {
+      apiKey: process.env.ELEVENLABS_API_KEY || "",
+      voiceId: process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM",
+    };
+  });
 }
