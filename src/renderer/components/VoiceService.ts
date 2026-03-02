@@ -55,6 +55,9 @@ export async function speak(
     const audioBlob = await response.blob();
     const audioUrl = URL.createObjectURL(audioBlob);
 
+    // Joue l'audio
+    await playAudio(audioUrl);
+
     // Libère la mémoire
     URL.revokeObjectURL(audioUrl);
   } catch (error) {
@@ -68,6 +71,16 @@ export async function speak(
  * Joue un fichier audio depuis une URL blob.
  * Retourne une Promise qui se résout quand l'audio se termine.
  */
+function playAudio(url: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const audio = new Audio(url);
+
+    audio.onended = () => resolve();
+    audio.onerror = (e) => reject(e);
+
+    audio.play().catch(reject);
+  });
+}
 
 /**
  * Estime la durée de parole en ms (environ 130 mots/minute).
