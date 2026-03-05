@@ -142,6 +142,31 @@
 
     <!-- Scripts séparés -->
     <script src="js/stars.js"></script>
+    <!-- Scripts — voice.js AVANT avatar.js -->
+    <script src="js/voice.js"></script>
     <script src="js/avatar.js"></script>
+    <script>
+      function saveApiKey() {
+        const key = document.getElementById("api-key-input").value.trim();
+        if (key) {
+          VoiceService.init(key);
+          document.getElementById("api-panel").style.display = "none";
+          setState("happy", "Voix activée ! Je peux parler maintenant~ 🎤");
+        }
+      }
+    </script>
+    <script src="js/avatar.js"></script>
+
+    <!-- Panneau config API key -->
+    <div class="api-panel" id="api-panel">
+      <p>🔑 Clé ElevenLabs (optionnel)</p>
+      <input type="password" id="api-key-input" placeholder="sk-..." />
+      <button onclick="saveApiKey()">Activer la voix</button>
+      <button
+        onclick="document.getElementById('api-panel').style.display='none'"
+      >
+        ✕
+      </button>
+    </div>
   </body>
 </html>
