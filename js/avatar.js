@@ -2,8 +2,6 @@
 // avatar.js — Logique de l'avatar Navi
 // ================================
 
-// ---- Données ----
-
 const MESSAGES = {
   waving: ["Coucou ! Je suis Navi~ 👋", "Salut ! Comment ça va ? ✨"],
   talking: ["Je traite ta demande... 💬", "Voilà ce que je pense ! 🗣️"],
@@ -20,7 +18,6 @@ const CLICK_REACTIONS = [
 ];
 
 // ---- Références DOM ----
-
 const avatar = document.getElementById("avatar");
 const bubble = document.getElementById("bubble");
 const bubbleText = document.getElementById("bubble-text");
@@ -28,69 +25,63 @@ const mouth = document.getElementById("mouth");
 const particles = document.getElementById("particles");
 
 // ---- État interne ----
-
 let resetTimer = null;
 
-// ---- Fonctions ----
+// ---- Fonctions principales ----
 
 /**
- * Change l'état de l'avatar et affiche un message dans la bulle.
- * @param {string} state  - 'idle' | 'talking' | 'happy' | 'waving' | 'thinking'
- * @param {string} [msg]  - Message personnalisé (optionnel)
+ * Change l'état de l'avatar, affiche un message, et parle si TTS dispo.
  */
 function setState(state, msg) {
-  // Choisit un message aléatoire si aucun n'est fourni
   const text = msg || pickRandom(MESSAGES[state] || MESSAGES.idle);
 
-  // Met à jour la classe de l'avatar
+  // Met à jour visuel
   avatar.className = `avatar ${state}`;
-
-  // Met à jour la bulle avec animation
   bubbleText.textContent = text;
   restartAnimation(bubble);
-
-  // Gère les particules
   updateParticles(state);
-
-  // Gère le style de la bouche
   updateMouth(state);
 
-  // Retour à l'état idle après 5 secondes
   clearTimeout(resetTimer);
-  resetTimer = setTimeout(() => {
-    avatar.className = "avatar idle";
-    mouth.className = "mouth";
-    mouth.style.cssText = "";
-  }, 5000);
+
+  // 🆕 Essaie de parler via ElevenLabs
+  if (VoiceService.config.enabled && !VoiceService.isSpeaking) {
+    VoiceService.speak(
+      text,
+      // onStart : avatar en mode talking + halo
+      () => {
+        avatar.className = `avatar talking speaking`;
+        updateMouth("talking");
+        showSoundIndicator(true);
+      },
+      // onEnd : retour idle
+      () => {
+        avatar.className = "avatar idle";
+        updateMouth("idle");
+        showSoundIndicator(false);
+        setMessage(null);
+      }
+    );
+  } else {
+    // Fallback sans voix : durée estimée
+    const duration = VoiceService.estimateDuration(text);
+    resetTimer = setTimeout(() => {
+      avatar.className = "avatar idle";
+      updateMouth("idle");
+    }, duration);
+  }
 }
 
-/**
- * Réaction au clic direct sur l'avatar.
- */
 function handleClick() {
+  if (VoiceService.isSpeaking) return;
   const reaction = pickRandom(CLICK_REACTIONS);
   setState(reaction.state, reaction.msg);
 }
 
-// ---- Helpers ----
+// ---- Helpers visuels ----
 
-/** Retourne un élément aléatoire d'un tableau. */
-function pickRandom(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-/** Relance l'animation CSS d'un élément. */
-function restartAnimation(el) {
-  el.style.animation = "none";
-  requestAnimationFrame(() => {
-    el.style.animation = "";
-  });
-}
-
-/** Affiche ou vide les particules selon l'état. */
 function updateParticles(state) {
   particles.innerHTML = "";
-
   if (state === "happy") {
     ["✨", "⭐", "💫"].forEach((emoji) => {
       const p = document.createElement("span");
@@ -101,9 +92,7 @@ function updateParticles(state) {
   }
 }
 
-/** Modifie le style de la bouche selon l'état. */
 function updateMouth(state) {
-  // Réinitialise
   mouth.style.cssText = "";
   mouth.className = "mouth";
 
@@ -118,21 +107,48 @@ function updateMouth(state) {
   }
 }
 
-// ---- Messages idle automatiques ----
+function setMessage(text) {
+  bubbleText.textContent = text || "";
+}
 
+function showSoundIndicator(visible) {
+  let indicator = document.getElementById("sound-indicator");
+  if (visible && !indicator) {
+    indicator = document.createElement("div");
+    indicator.id = "sound-indicator";
+    indicator.className = "sound-indicator";
+    indicator.textContent = "🔊";
+    document.querySelector(".preview-card").appendChild(indicator);
+  } else if (!visible && indicator) {
+    indicator.remove();
+  }
+}
+
+function restartAnimation(el) {
+  el.style.animation = "none";
+  requestAnimationFrame(() => {
+    el.style.animation = "";
+  });
+}
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// ---- Messages idle automatiques ----
 (function scheduleIdleMessages() {
-  function showNextIdle() {
-    const delay = 15000 + Math.random() * 20000; // 15-35 secondes
+  function next() {
+    const delay = 15000 + Math.random() * 20000;
     setTimeout(() => {
-      setState("idle");
-      showNextIdle();
+      if (!VoiceService.isSpeaking) setState("idle");
+      next();
     }, delay);
   }
-  showNextIdle();
+  next();
 })();
 
-// ---- Message de bienvenue au démarrage ----
-
-setTimeout(() => {
-  setState("waving", "Salut ! Je suis Navi, ton assistante ! ✨");
-}, 500);
+// ---- Bienvenue ----
+setTimeout(
+  () => setState("waving", "Salut ! Je suis Navi, ton assistante ! ✨"),
+  500
+);
