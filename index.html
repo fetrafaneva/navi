@@ -14,12 +14,12 @@
     <link rel="stylesheet" href="css/ui.css" />
   </head>
   <body>
-    <!-- Étoiles de fond générées par JS -->
+    <!-- Étoiles de fond -->
     <div class="stars" id="stars"></div>
 
     <div class="scene">
       <h1>✨ Navi</h1>
-      <p class="subtitle">Préview — Phase 1 de ton assistant anime</p>
+      <p class="subtitle">Préview — Assistant anime Phase 3</p>
 
       <div class="preview-card">
         <!-- Bulle de dialogue -->
@@ -27,23 +27,17 @@
           <p id="bubble-text">Salut ! Je suis Navi~ ✨</p>
         </div>
 
-        <!-- Avatar principal -->
+        <!-- Avatar -->
         <div class="avatar waving" id="avatar" onclick="handleClick()">
           <div class="avatar__shadow"></div>
-
           <div class="character" id="character">
-            <!-- Cheveux arrière -->
             <div class="hair-back"></div>
-
-            <!-- Corps -->
             <div class="body">
               <div class="collar"></div>
               <div class="bow"></div>
               <div class="arm left"></div>
               <div class="arm right" id="arm-right"></div>
             </div>
-
-            <!-- Tête -->
             <div class="head">
               <div class="hair-top"></div>
               <div class="hair-side left"></div>
@@ -51,7 +45,6 @@
               <div class="hair-bang bl"></div>
               <div class="hair-bang br"></div>
               <div class="hair-bang center"></div>
-
               <div class="face">
                 <div class="eyes">
                   <div class="eye">
@@ -76,28 +69,39 @@
                 <div class="blush left"></div>
                 <div class="blush right"></div>
               </div>
-
               <div class="ear left"></div>
               <div class="ear right"></div>
             </div>
-
-            <!-- Accessoire étoile -->
             <div class="star-acc">★</div>
-
-            <!-- Jambes -->
             <div class="legs">
               <div class="leg"><div class="shoe"></div></div>
               <div class="leg"><div class="shoe"></div></div>
             </div>
           </div>
-          <!-- /.character -->
-
-          <!-- Particules (ajoutées par JS) -->
           <div class="particles" id="particles"></div>
         </div>
-        <!-- /#avatar -->
 
-        <!-- Boutons de contrôle -->
+        <!-- 🆕 Zone de saisie Phase 3 -->
+        <div class="input-bar">
+          <input
+            type="text"
+            id="user-input"
+            class="input-bar__field"
+            placeholder="Parle à Navi..."
+            maxlength="200"
+            onkeydown="if(event.key==='Enter') sendMessage()"
+          />
+          <button class="input-bar__btn" onclick="sendMessage()">➤</button>
+          <button
+            class="input-bar__btn reset"
+            onclick="resetChat()"
+            title="Nouvelle conversation"
+          >
+            ↺
+          </button>
+        </div>
+
+        <!-- Boutons états -->
         <div class="controls">
           <button
             class="btn btn-waving"
@@ -132,41 +136,93 @@
         </div>
 
         <p class="info">
-          👆 Clique sur l'avatar ou les boutons pour voir les animations.<br />
-          Dans l'app Electron, il flottera sur ton bureau Windows !
+          💬 Tape un message pour parler à Navi via Claude AI !
         </p>
       </div>
-      <!-- /.preview-card -->
     </div>
-    <!-- /.scene -->
 
-    <!-- Scripts séparés -->
-    <script src="js/stars.js"></script>
-    <!-- Scripts — voice.js AVANT avatar.js -->
-    <script src="js/voice.js"></script>
-    <script src="js/avatar.js"></script>
-    <script>
-      function saveApiKey() {
-        const key = document.getElementById("api-key-input").value.trim();
-        if (key) {
-          VoiceService.init(key);
-          document.getElementById("api-panel").style.display = "none";
-          setState("happy", "Voix activée ! Je peux parler maintenant~ 🎤");
-        }
-      }
-    </script>
-    <script src="js/avatar.js"></script>
-
-    <!-- Panneau config API key -->
+    <!-- Panneau config API -->
     <div class="api-panel" id="api-panel">
-      <p>🔑 Clé ElevenLabs (optionnel)</p>
-      <input type="password" id="api-key-input" placeholder="sk-..." />
-      <button onclick="saveApiKey()">Activer la voix</button>
+      <p>🔑 Clés API (optionnel)</p>
+
+      <label>ElevenLabs (voix)</label>
+      <input
+        type="password"
+        id="eleven-key-input"
+        placeholder="Clé ElevenLabs..."
+      />
+
+      <label>Claude AI (intelligence)</label>
+      <input type="password" id="claude-key-input" placeholder="sk-ant-..." />
+
+      <button onclick="saveKeys()">✅ Activer</button>
       <button
         onclick="document.getElementById('api-panel').style.display='none'"
       >
-        ✕
+        ✕ Fermer
       </button>
     </div>
+
+    <!-- Bouton pour ouvrir le panneau config -->
+    <button
+      class="config-btn"
+      onclick="document.getElementById('api-panel').style.display='flex'"
+      title="Configurer les clés API"
+    >
+      ⚙️
+    </button>
+
+    <!-- Scripts dans le bon ordre -->
+    <script src="js/stars.js"></script>
+    <script src="js/voice.js"></script>
+    <script src="js/claude.js"></script>
+    <script src="js/avatar.js"></script>
+    <script>
+      // Sauvegarde les deux clés API
+      function saveKeys() {
+        const elevenKey = document
+          .getElementById("eleven-key-input")
+          .value.trim();
+        const claudeKey = document
+          .getElementById("claude-key-input")
+          .value.trim();
+
+        if (elevenKey) VoiceService.init(elevenKey);
+        if (claudeKey) ClaudeService.init(claudeKey);
+
+        document.getElementById("api-panel").style.display = "none";
+        setState("happy", "Clés activées ! Je suis prête~ 🎤🧠");
+      }
+
+      // Envoie un message à Claude
+      async function sendMessage() {
+        const input = document.getElementById("user-input");
+        const text = input.value.trim();
+        if (!text || ClaudeService.isBusy) return;
+
+        input.value = "";
+        input.disabled = true;
+        ClaudeService.isBusy = true;
+
+        await ClaudeService.ask(
+          text,
+          // onThinking
+          () => setState("thinking", "Hmm, laisse-moi réfléchir... 🤔"),
+          // onAnswer
+          (reply) => {
+            ClaudeService.isBusy = false;
+            input.disabled = false;
+            input.focus();
+            setState("talking", reply);
+          }
+        );
+      }
+
+      // Reset la conversation
+      function resetChat() {
+        ClaudeService.clearHistory();
+        setState("happy", "Nouvelle conversation ! 😊");
+      }
+    </script>
   </body>
 </html>
