@@ -6,6 +6,9 @@ contextBridge.exposeInMainWorld("navi", {
     ipcRenderer.send("move-window", { x, y }),
   quitApp: () => ipcRenderer.send("quit-app"),
 
-  // récupère la config voix depuis le main process
+  // Phase 2
   getVoiceConfig: () => ipcRenderer.invoke("get-voice-config"),
+
+  // Phase 3
+  getClaudeConfig: () => ipcRenderer.invoke("get-claude-config"),
 });
