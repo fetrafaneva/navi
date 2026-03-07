@@ -19,58 +19,70 @@ const IDLE_MESSAGES = [
 
 export type AvatarState = "idle" | "talking" | "thinking" | "happy" | "waving";
 
-// Configs API
-let voiceConfig: { apiKey: string; voiceId: string } | null = null;
-let claudeConfig: { apiKey: string } | null = null;
-
 export default function App() {
   const [avatarState, setAvatarState] = useState<AvatarState>("waving");
   const [message, setMessage] = useState<string | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false); // 🆕 audio déverrouillé
+
+  // Refs pour éviter les bugs de closure
+  const isSpeakingRef = useRef(false);
+  const isThinkingRef = useRef(false);
+  const isUnlockedRef = useRef(false); // 🆕
   const dragStart = useRef({ mouseX: 0, mouseY: 0, winX: 0, winY: 0 });
   const messageTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ---- Charge les config API ----
-  useEffect(() => {
-    (window as any).navi?.getVoiceConfig().then((c: any) => {
-      voiceConfig = c;
-      console.log("[Navi] Config voix");
-    });
-    (window as any).navi?.getClaudeConfig().then((c: any) => {
-      claudeConfig = c;
-      console.log("[Navi] Config Claude");
-    });
+  // Helpers pour mettre à jour state + ref ensemble
+  const setSpeaking = (val: boolean) => {
+    isSpeakingRef.current = val;
+    setIsSpeaking(val);
+  };
+  const setThinking = (val: boolean) => {
+    isThinkingRef.current = val;
+    setIsThinking(val);
+  };
+
+  // 🆕 Déverrouille l'audio au premier clic
+  const unlockAudio = useCallback(() => {
+    if (isUnlockedRef.current) return;
+    isUnlockedRef.current = true;
+    setIsUnlocked(true);
+    // Crée un contexte audio silencieux pour débloquer l'autoplay
+    const ctx = new AudioContext();
+    ctx.resume().then(() => ctx.close());
+    console.log("[Navi] Audio déverrouillé ✅");
   }, []);
 
-  // ---- Affich un message et parle ----
+  // ---- Affiche un message + parle ----
   const showMessage = useCallback(
     async (text: string, state: AvatarState = "talking", duration?: number) => {
       if (messageTimer.current) clearTimeout(messageTimer.current);
-
       setMessage(text);
       setAvatarState(state);
 
+      // Parle seulement si audio déverrouillé et état vocal
       if (
-        voiceConfig?.apiKey &&
-        !isSpeaking &&
+        isUnlockedRef.current &&
+        !isSpeakingRef.current &&
         (state === "talking" || state === "waving")
       ) {
-        setIsSpeaking(true);
+        setSpeaking(true);
         setAvatarState("talking");
+
         await speak(
           text,
-          voiceConfig!,
           () => setAvatarState("talking"),
           () => {
-            setIsSpeaking(false);
+            setSpeaking(false);
             setAvatarState("idle");
             setMessage(null);
           }
         );
       } else {
+        // Fallback sans voix : durée estimée
         const dur = duration ?? estimateSpeakDuration(text);
         messageTimer.current = setTimeout(() => {
           setMessage(null);
@@ -78,42 +90,39 @@ export default function App() {
         }, dur);
       }
     },
-    [isSpeaking]
+    []
   );
 
   // ---- Envoie un message à Claude ----
   const handleUserMessage = useCallback(
     async (userText: string) => {
-      if (isThinking || isSpeaking) return;
+      if (isThinkingRef.current || isSpeakingRef.current) return;
 
-      setIsThinking(true);
+      setThinking(true);
       setAvatarState("thinking");
-      setMessage("Hmm, laisse-moi réfléchir... ");
+      setMessage("Hmm, laisse-moi réfléchir... 🤔");
 
-      const reply = await askClaude(
-        userText,
-        claudeConfig ?? { apiKey: "" },
-        "Utilisateur sur Windows 10"
-      );
+      const reply = await askClaude(userText);
 
-      setIsThinking(false);
+      setThinking(false);
       await showMessage(reply, "talking");
     },
-    [isThinking, isSpeaking, showMessage]
+    [showMessage]
   );
 
-  // ---- Bienvenue ----
+  // ---- Bienvenue au démarrage ----
   useEffect(() => {
     const greeting = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
+    // Affiche le message sans voix (pas encore déverrouillé)
     setTimeout(() => showMessage(greeting, "waving"), 800);
   }, []); // eslint-disable-line
 
-  // ---- Messages idle ----
+  // ---- Messages idle automatiques ----
   useEffect(() => {
     const schedule = () => {
       const delay = 20000 + Math.random() * 20000;
       idleTimer.current = setTimeout(() => {
-        if (!isSpeaking && !isThinking) {
+        if (!isSpeakingRef.current && !isThinkingRef.current) {
           const msg =
             IDLE_MESSAGES[Math.floor(Math.random() * IDLE_MESSAGES.length)];
           showMessage(msg, "idle", 4000);
@@ -125,7 +134,7 @@ export default function App() {
     return () => {
       if (idleTimer.current) clearTimeout(idleTimer.current);
     };
-  }, [isSpeaking, isThinking, showMessage]);
+  }, []); // eslint-disable-line
 
   // ---- Drag ----
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -160,7 +169,11 @@ export default function App() {
 
   // ---- Clic sur l'avatar ----
   const handleAvatarClick = () => {
-    if (isSpeaking || isThinking) return;
+    // Premier clic = déverrouille l'audio
+    unlockAudio();
+
+    if (isSpeakingRef.current || isThinkingRef.current) return;
+
     const reactions = [
       { msg: "Tu m'as cliqué ! Hehe~ 😊", state: "happy" as AvatarState },
       { msg: "Pose-moi une question ! 💬", state: "waving" as AvatarState },
@@ -171,7 +184,8 @@ export default function App() {
   };
 
   return (
-    <div className="app-container">
+    // 🆕 Déverrouille l'audio sur n'importe quel clic dans l'app
+    <div className="app-container" onClick={unlockAudio}>
       {message && <DialogBubble message={message} />}
 
       <div
@@ -187,20 +201,24 @@ export default function App() {
       {isSpeaking && <div className="sound-indicator">🔊</div>}
       {isThinking && <div className="sound-indicator">💭</div>}
 
-      {/* Zone de saisie */}
+      {/* 🆕 Hint si audio pas encore déverrouillé */}
+      {!isUnlocked && (
+        <div className="unlock-hint">👆 Clique pour activer la voix</div>
+      )}
+
       <InputBar
         onSend={handleUserMessage}
         disabled={isSpeaking || isThinking}
       />
 
-      {/* Bouton reset conversation */}
       <button
         className="reset-btn"
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation();
           clearHistory();
           showMessage("Nouvelle conversation ! 😊", "happy");
         }}
-        title="Réinitialiser la conversation"
+        title="Réinitialiser"
       >
         ↺
       </button>

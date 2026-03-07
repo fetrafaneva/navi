@@ -1,68 +1,119 @@
-import { app, BrowserWindow } from 'electron'
-import { createRequire } from 'node:module'
-import { fileURLToPath } from 'node:url'
-import path from 'node:path'
+import { app, BrowserWindow, ipcMain, screen } from "electron";
+import * as path from "path";
+import * as dotenv from "dotenv";
+import { fileURLToPath } from "url"; // 🆕
 
-const require = createRequire(import.meta.url)
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+// 🆕 Remplace __dirname pour les ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config();
 
-// The built directory structure
-//
-// ├─┬─┬ dist
-// │ │ └── index.html
-// │ │
-// │ ├─┬ dist-electron
-// │ │ ├── main.js
-// │ │ └── preload.mjs
-// │
-process.env.APP_ROOT = path.join(__dirname, '..')
+let mainWindow: BrowserWindow | null = null;
 
-// 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
-export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
-export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron')
-export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist')
+function createWindow(): void {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
-process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST
-
-let win: BrowserWindow | null
-
-function createWindow() {
-  win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+  mainWindow = new BrowserWindow({
+    width: 800,
+    height: 700,
+    x: Math.floor((width - 800) / 2), // centré horizontalement
+    y: Math.floor((height - 700) / 2), // centré verticalement
+    transparent: false, // ← désactive la transparence pour mieux voir
+    frame: true, // ← ajoute une bordure pour les tests
+    alwaysOnTop: false, // ← plus utile pour les tests
+    skipTaskbar: false, // ← visible dans la barre des tâches
+    resizable: true, // ← redimensionnable
+    hasShadow: true,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: path.join(__dirname, "preload.mjs"),
+      contextIsolation: true,
+      nodeIntegration: false,
     },
-  })
+  });
 
-  // Test active push message to Renderer-process.
-  win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', (new Date).toLocaleString())
-  })
-
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL)
+  if (process.env.NODE_ENV === "development") {
+    mainWindow.loadURL("http://localhost:5173");
+    mainWindow.webContents.openDevTools({ mode: "detach" });
   } else {
-    // win.loadFile('dist/index.html')
-    win.loadFile(path.join(RENDERER_DIST, 'index.html'))
+    mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
   }
+
+  ipcMain.on("move-window", (_event, { x, y }) => {
+    mainWindow?.setPosition(x, y);
+  });
+
+  ipcMain.on("quit-app", () => {
+    app.quit();
+  });
+
+  // ✅ Claude dans Node.js — zéro CORS
+  ipcMain.handle("claude-ask", async (_event, { messages, context }) => {
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": process.env.CLAUDE_API_KEY || "",
+          "Content-Type": "application/json",
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 150,
+          system: `Tu es Navi, une assistante anime mignonne sur le bureau Windows.
+Tu parles en français, de façon courte et amicale (2-3 phrases max).
+Utilise des emojis avec modération. Sois utile et positive !
+Contexte : ${context || "L'utilisateur utilise son ordinateur."}`,
+          messages,
+        }),
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error?.message || response.statusText);
+      }
+      const data = await response.json();
+      return { success: true, reply: data.content[0].text };
+    } catch (error: any) {
+      console.error("[Claude] Erreur :", error.message);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // ✅ ElevenLabs dans Node.js — zéro CORS
+  ipcMain.handle("tts-speak", async (_event, { text }) => {
+    try {
+      const voiceId = process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM";
+      const response = await fetch(
+        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+        {
+          method: "POST",
+          headers: {
+            "xi-api-key": process.env.ELEVENLABS_API_KEY || "",
+            "Content-Type": "application/json",
+            Accept: "audio/mpeg",
+          },
+          body: JSON.stringify({
+            text,
+            model_id: "eleven_multilingual_v2",
+            voice_settings: { stability: 0.5, similarity_boost: 0.8 },
+          }),
+        }
+      );
+      if (!response.ok) throw new Error(response.statusText);
+      const buffer = Buffer.from(await response.arrayBuffer());
+      return { success: true, audio: buffer.toString("base64") };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  });
 }
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-    win = null
-  }
-})
+app.whenReady().then(() => {
+  createWindow();
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
 
-app.on('activate', () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow()
-  }
-})
-
-app.whenReady().then(createWindow)
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
+});

@@ -1,35 +1,206 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/electron-vite.animate.svg'
-import './App.css'
+import { useState, useEffect, useRef, useCallback } from "react";
+import Avatar from "./components/Avatar";
+import DialogBubble from "./components/DialogBubble";
+import InputBar from "./components/InputBar";
+import { speak, estimateSpeakDuration } from "./components/VoiceService";
+import { askClaude, clearHistory } from "./components/ClaudeService";
 
-function App() {
-  const [count, setCount] = useState(0)
+const GREETINGS = [
+  "Salut ! Je suis Navi, ton assistante ! ✨",
+  "Bonjour ! Comment puis-je t'aider ? 💫",
+  "Hé ! Pose-moi une question ! 🌸",
+];
+
+const IDLE_MESSAGES = [
+  "Je suis là si tu as besoin... 💤",
+  "Psst... parle-moi ! 👀",
+  "Tout va bien ? Je veille sur toi~ 🌙",
+];
+
+export type AvatarState = "idle" | "talking" | "thinking" | "happy" | "waving";
+
+export default function App() {
+  const [avatarState, setAvatarState] = useState<AvatarState>("waving");
+  const [message, setMessage] = useState<string | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+
+  const isSpeakingRef = useRef(false);
+  const isThinkingRef = useRef(false);
+  const isUnlockedRef = useRef(false);
+  const dragStart = useRef({ mouseX: 0, mouseY: 0, winX: 0, winY: 0 });
+  const messageTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const setSpeaking = (val: boolean) => {
+    isSpeakingRef.current = val;
+    setIsSpeaking(val);
+  };
+  const setThinking = (val: boolean) => {
+    isThinkingRef.current = val;
+    setIsThinking(val);
+  };
+
+  const unlockAudio = useCallback(() => {
+    if (isUnlockedRef.current) return;
+    isUnlockedRef.current = true;
+    setIsUnlocked(true);
+    const ctx = new AudioContext();
+    ctx.resume().then(() => ctx.close());
+  }, []);
+
+  const showMessage = useCallback(
+    async (text: string, state: AvatarState = "talking", duration?: number) => {
+      if (messageTimer.current) clearTimeout(messageTimer.current);
+      setMessage(text);
+      setAvatarState(state);
+
+      if (
+        isUnlockedRef.current &&
+        !isSpeakingRef.current &&
+        (state === "talking" || state === "waving")
+      ) {
+        setSpeaking(true);
+        setAvatarState("talking");
+        await speak(
+          text,
+          () => setAvatarState("talking"),
+          () => {
+            setSpeaking(false);
+            setAvatarState("idle");
+            setMessage(null);
+          }
+        );
+      } else {
+        const dur = duration ?? estimateSpeakDuration(text);
+        messageTimer.current = setTimeout(() => {
+          setMessage(null);
+          setAvatarState("idle");
+        }, dur);
+      }
+    },
+    []
+  );
+
+  const handleUserMessage = useCallback(
+    async (userText: string) => {
+      if (isThinkingRef.current || isSpeakingRef.current) return;
+      setThinking(true);
+      setAvatarState("thinking");
+      setMessage("Hmm, laisse-moi réfléchir... 🤔");
+      const reply = await askClaude(userText);
+      setThinking(false);
+      await showMessage(reply, "talking");
+    },
+    [showMessage]
+  );
+
+  useEffect(() => {
+    const greeting = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
+    setTimeout(() => showMessage(greeting, "waving"), 800);
+  }, []); // eslint-disable-line
+
+  useEffect(() => {
+    const schedule = () => {
+      const delay = 20000 + Math.random() * 20000;
+      idleTimer.current = setTimeout(() => {
+        if (!isSpeakingRef.current && !isThinkingRef.current) {
+          const msg =
+            IDLE_MESSAGES[Math.floor(Math.random() * IDLE_MESSAGES.length)];
+          showMessage(msg, "idle", 4000);
+        }
+        schedule();
+      }, delay);
+    };
+    schedule();
+    return () => {
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+    };
+  }, []); // eslint-disable-line
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    setIsDragging(true);
+    dragStart.current = {
+      mouseX: e.screenX,
+      mouseY: e.screenY,
+      winX: window.screenX,
+      winY: window.screenY,
+    };
+  };
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const dx = e.screenX - dragStart.current.mouseX;
+      const dy = e.screenY - dragStart.current.mouseY;
+      (window as any).navi?.moveWindow(
+        dragStart.current.winX + dx,
+        dragStart.current.winY + dy
+      );
+    };
+    const onUp = () => setIsDragging(false);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [isDragging]);
+
+  const handleAvatarClick = () => {
+    unlockAudio();
+    if (isSpeakingRef.current || isThinkingRef.current) return;
+    const reactions = [
+      { msg: "Tu m'as cliqué ! Hehe~ 😊", state: "happy" as AvatarState },
+      { msg: "Pose-moi une question ! 💬", state: "waving" as AvatarState },
+      { msg: "Je suis là pour toi ! 💪", state: "happy" as AvatarState },
+    ];
+    const r = reactions[Math.floor(Math.random() * reactions.length)];
+    showMessage(r.msg, r.state);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://electron-vite.github.io" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="app-container" onClick={unlockAudio}>
+      {message && <DialogBubble message={message} />}
+      <div
+        className={`avatar-wrapper ${isDragging ? "dragging" : ""} ${
+          isSpeaking ? "speaking" : ""
+        } ${isThinking ? "thinking" : ""}`}
+        onMouseDown={handleMouseDown}
+        onClick={handleAvatarClick}
+      >
+        <Avatar state={avatarState} />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      {isSpeaking && <div className="sound-indicator">🔊</div>}
+      {isThinking && <div className="sound-indicator">💭</div>}
+      {!isUnlocked && (
+        <div className="unlock-hint">👆 Clique pour activer la voix</div>
+      )}
+      <InputBar
+        onSend={handleUserMessage}
+        disabled={isSpeaking || isThinking}
+      />
+      <button
+        className="reset-btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          clearHistory();
+          showMessage("Nouvelle conversation ! 😊", "happy");
+        }}
+        title="Réinitialiser"
+      >
+        ↺
+      </button>
+      <button
+        className="close-btn"
+        onClick={() => (window as any).navi?.quitApp()}
+        title="Fermer Navi"
+      >
+        ×
+      </button>
+    </div>
+  );
 }
-
-export default App

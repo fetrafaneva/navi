@@ -141,35 +141,13 @@
       </div>
     </div>
 
-    <!-- Panneau config API -->
-    <div class="api-panel" id="api-panel">
-      <p>🔑 Clés API (optionnel)</p>
-
-      <label>ElevenLabs (voix)</label>
-      <input
-        type="password"
-        id="eleven-key-input"
-        placeholder="Clé ElevenLabs..."
-      />
-
-      <label>Claude AI (intelligence)</label>
-      <input type="password" id="claude-key-input" placeholder="sk-ant-..." />
-
-      <button onclick="saveKeys()">✅ Activer</button>
-      <button
-        onclick="document.getElementById('api-panel').style.display='none'"
-      >
-        ✕ Fermer
-      </button>
-    </div>
-
-    <!-- Bouton pour ouvrir le panneau config -->
+    <!-- Bouton reset conversation -->
     <button
       class="config-btn"
-      onclick="document.getElementById('api-panel').style.display='flex'"
-      title="Configurer les clés API"
+      onclick="resetChat()"
+      title="Nouvelle conversation"
     >
-      ⚙️
+      ↺
     </button>
 
     <!-- Scripts dans le bon ordre -->
@@ -178,22 +156,6 @@
     <script src="js/claude.js"></script>
     <script src="js/avatar.js"></script>
     <script>
-      // Sauvegarde les deux clés API
-      function saveKeys() {
-        const elevenKey = document
-          .getElementById("eleven-key-input")
-          .value.trim();
-        const claudeKey = document
-          .getElementById("claude-key-input")
-          .value.trim();
-
-        if (elevenKey) VoiceService.init(elevenKey);
-        if (claudeKey) ClaudeService.init(claudeKey);
-
-        document.getElementById("api-panel").style.display = "none";
-        setState("happy", "Clés activées ! Je suis prête~ 🎤🧠");
-      }
-
       // Envoie un message à Claude
       async function sendMessage() {
         const input = document.getElementById("user-input");
@@ -202,15 +164,11 @@
 
         input.value = "";
         input.disabled = true;
-        ClaudeService.isBusy = true;
 
         await ClaudeService.ask(
           text,
-          // onThinking
           () => setState("thinking", "Hmm, laisse-moi réfléchir... 🤔"),
-          // onAnswer
           (reply) => {
-            ClaudeService.isBusy = false;
             input.disabled = false;
             input.focus();
             setState("talking", reply);
