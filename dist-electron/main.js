@@ -337,16 +337,23 @@ let mainWindow = null;
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   mainWindow = new BrowserWindow({
-    width: 220,
-    height: 420,
-    x: width - 240,
-    y: height - 440,
-    transparent: true,
-    frame: false,
-    alwaysOnTop: true,
-    skipTaskbar: true,
-    resizable: false,
-    hasShadow: false,
+    width: 800,
+    height: 700,
+    x: Math.floor((width - 800) / 2),
+    // centré horizontalement
+    y: Math.floor((height - 700) / 2),
+    // centré verticalement
+    transparent: false,
+    // ← désactive la transparence pour mieux voir
+    frame: true,
+    // ← ajoute une bordure pour les tests
+    alwaysOnTop: false,
+    // ← plus utile pour les tests
+    skipTaskbar: false,
+    // ← visible dans la barre des tâches
+    resizable: true,
+    // ← redimensionnable
+    hasShadow: true,
     webPreferences: {
       preload: path$1.join(__dirname$1, "preload.mjs"),
       contextIsolation: true,
