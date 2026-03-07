@@ -32,14 +32,10 @@ const VoiceService = {
       onStart?.();
 
       const response = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${this.config.voiceId}`,
+        `http://localhost:3000/api/tts/${this.config.voiceId}`,
         {
           method: "POST",
-          headers: {
-            "xi-api-key": this.config.apiKey,
-            "Content-Type": "application/json",
-            Accept: "audio/mpeg",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             text,
             model_id: "eleven_multilingual_v2",

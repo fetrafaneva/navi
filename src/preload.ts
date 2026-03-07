@@ -6,9 +6,11 @@ contextBridge.exposeInMainWorld("navi", {
     ipcRenderer.send("move-window", { x, y }),
   quitApp: () => ipcRenderer.send("quit-app"),
 
-  // Phase 2
-  getVoiceConfig: () => ipcRenderer.invoke("get-voice-config"),
+  // Phase 2 — TTS via Node.js
+  ttsSpeak: (text: string, voiceId?: string) =>
+    ipcRenderer.invoke("tts-speak", { text, voiceId }),
 
-  // Phase 3
-  getClaudeConfig: () => ipcRenderer.invoke("get-claude-config"),
+  // Phase 3 — Claude via Node.js
+  claudeAsk: (messages: any[], context?: string) =>
+    ipcRenderer.invoke("claude-ask", { messages, context }),
 });
