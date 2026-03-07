@@ -1,22 +1,11 @@
 "use strict";
 const electron = require("electron");
-electron.contextBridge.exposeInMainWorld("ipcRenderer", {
-  on(...args) {
-    const [channel, listener] = args;
-    return electron.ipcRenderer.on(channel, (event, ...args2) => listener(event, ...args2));
-  },
-  off(...args) {
-    const [channel, ...omit] = args;
-    return electron.ipcRenderer.off(channel, ...omit);
-  },
-  send(...args) {
-    const [channel, ...omit] = args;
-    return electron.ipcRenderer.send(channel, ...omit);
-  },
-  invoke(...args) {
-    const [channel, ...omit] = args;
-    return electron.ipcRenderer.invoke(channel, ...omit);
-  }
-  // You can expose other APTs you need here.
-  // ...
+electron.contextBridge.exposeInMainWorld("navi", {
+  // Phase 1
+  moveWindow: (x, y) => electron.ipcRenderer.send("move-window", { x, y }),
+  quitApp: () => electron.ipcRenderer.send("quit-app"),
+  // Phase 2 — TTS
+  ttsSpeak: (text) => electron.ipcRenderer.invoke("tts-speak", { text }),
+  // Phase 3 — Claude
+  claudeAsk: (messages, context) => electron.ipcRenderer.invoke("claude-ask", { messages, context })
 });

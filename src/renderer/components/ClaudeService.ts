@@ -13,11 +13,14 @@ export async function askClaude(
   onThinking?.();
   history.push({ role: "user", content: userMessage });
 
-  // Appel via IPC → Node.js → Claude API (pas de CORS !)
-  const result = await (window as any).navi.claudeAsk(history);
+  const result = await (window as any).navi.claudeAsk(
+    history,
+    "L'utilisateur utilise Windows 10"
+  );
 
   if (!result.success) {
-    const err = "Oups, erreur Claude ! 😅";
+    const err = `Erreur : ${result.error} 😅`;
+    history.pop();
     onAnswer?.(err);
     return err;
   }

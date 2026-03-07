@@ -19,53 +19,50 @@ const IDLE_MESSAGES = [
 
 export type AvatarState = "idle" | "talking" | "thinking" | "happy" | "waving";
 
-// Configs API
-let voiceConfig: { apiKey: string; voiceId: string } | null = null;
-let claudeConfig: { apiKey: string } | null = null;
-
 export default function App() {
   const [avatarState, setAvatarState] = useState<AvatarState>("waving");
   const [message, setMessage] = useState<string | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+
+  // ✅ Utilise des refs pour éviter les bugs de closure
+  const isSpeakingRef = useRef(false);
+  const isThinkingRef = useRef(false);
   const dragStart = useRef({ mouseX: 0, mouseY: 0, winX: 0, winY: 0 });
   const messageTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ---- Charge les config API ----
-  useEffect(() => {
-    (window as any).navi?.getVoiceConfig().then((c: any) => {
-      voiceConfig = c;
-      console.log("[Navi] Config voix");
-    });
-    (window as any).navi?.getClaudeConfig().then((c: any) => {
-      claudeConfig = c;
-      console.log("[Navi] Config Claude");
-    });
-  }, []);
+  // Helper pour mettre à jour state + ref ensemble
+  const setSpeaking = (val: boolean) => {
+    isSpeakingRef.current = val;
+    setIsSpeaking(val);
+  };
+  const setThinking = (val: boolean) => {
+    isThinkingRef.current = val;
+    setIsThinking(val);
+  };
 
-  // ---- Affich un message et parle ----
+  // ---- Affiche un message + parle ----
   const showMessage = useCallback(
     async (text: string, state: AvatarState = "talking", duration?: number) => {
       if (messageTimer.current) clearTimeout(messageTimer.current);
-
       setMessage(text);
       setAvatarState(state);
 
+      // ✅ Utilise la ref pour éviter le bug de closure
       if (
-        voiceConfig?.apiKey &&
-        !isSpeaking &&
+        !isSpeakingRef.current &&
         (state === "talking" || state === "waving")
       ) {
-        setIsSpeaking(true);
+        setSpeaking(true);
         setAvatarState("talking");
+
         await speak(
           text,
-          voiceConfig!,
           () => setAvatarState("talking"),
           () => {
-            setIsSpeaking(false);
+            setSpeaking(false);
             setAvatarState("idle");
             setMessage(null);
           }
@@ -78,28 +75,25 @@ export default function App() {
         }, dur);
       }
     },
-    [isSpeaking]
-  );
+    []
+  ); // ✅ Plus de dépendances qui causent des re-renders
 
   // ---- Envoie un message à Claude ----
   const handleUserMessage = useCallback(
     async (userText: string) => {
-      if (isThinking || isSpeaking) return;
+      // ✅ Utilise les refs
+      if (isThinkingRef.current || isSpeakingRef.current) return;
 
-      setIsThinking(true);
+      setThinking(true);
       setAvatarState("thinking");
-      setMessage("Hmm, laisse-moi réfléchir... ");
+      setMessage("Hmm, laisse-moi réfléchir... 🤔");
 
-      const reply = await askClaude(
-        userText,
-        claudeConfig ?? { apiKey: "" },
-        "Utilisateur sur Windows 10"
-      );
+      const reply = await askClaude(userText);
 
-      setIsThinking(false);
+      setThinking(false);
       await showMessage(reply, "talking");
     },
-    [isThinking, isSpeaking, showMessage]
+    [showMessage]
   );
 
   // ---- Bienvenue ----
@@ -113,7 +107,7 @@ export default function App() {
     const schedule = () => {
       const delay = 20000 + Math.random() * 20000;
       idleTimer.current = setTimeout(() => {
-        if (!isSpeaking && !isThinking) {
+        if (!isSpeakingRef.current && !isThinkingRef.current) {
           const msg =
             IDLE_MESSAGES[Math.floor(Math.random() * IDLE_MESSAGES.length)];
           showMessage(msg, "idle", 4000);
@@ -125,7 +119,7 @@ export default function App() {
     return () => {
       if (idleTimer.current) clearTimeout(idleTimer.current);
     };
-  }, [isSpeaking, isThinking, showMessage]);
+  }, []); // eslint-disable-line
 
   // ---- Drag ----
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -160,7 +154,7 @@ export default function App() {
 
   // ---- Clic sur l'avatar ----
   const handleAvatarClick = () => {
-    if (isSpeaking || isThinking) return;
+    if (isSpeakingRef.current || isThinkingRef.current) return;
     const reactions = [
       { msg: "Tu m'as cliqué ! Hehe~ 😊", state: "happy" as AvatarState },
       { msg: "Pose-moi une question ! 💬", state: "waving" as AvatarState },
@@ -187,20 +181,18 @@ export default function App() {
       {isSpeaking && <div className="sound-indicator">🔊</div>}
       {isThinking && <div className="sound-indicator">💭</div>}
 
-      {/* Zone de saisie */}
       <InputBar
         onSend={handleUserMessage}
         disabled={isSpeaking || isThinking}
       />
 
-      {/* Bouton reset conversation */}
       <button
         className="reset-btn"
         onClick={() => {
           clearHistory();
           showMessage("Nouvelle conversation ! 😊", "happy");
         }}
-        title="Réinitialiser la conversation"
+        title="Réinitialiser"
       >
         ↺
       </button>
