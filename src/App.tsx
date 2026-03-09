@@ -15,6 +15,7 @@ const IDLE_MESSAGES = [
   "Je suis là si tu as besoin...",
   "Psst... parle-moi !",
   "Tout va bien ? Je veille sur toi~",
+  "Are you ok ?",
 ];
 
 export type AvatarState = "idle" | "talking" | "thinking" | "happy" | "waving";
