@@ -14,16 +14,16 @@ function createWindow(): void {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 700,
-    x: Math.floor((width - 800) / 2),
-    y: Math.floor((height - 700) / 2),
-    transparent: false,
-    frame: true,
-    alwaysOnTop: false,
-    skipTaskbar: false,
-    resizable: true,
-    hasShadow: true,
+    width: 220,
+    height: 420,
+    x: width - 240,
+    y: height - 440,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    resizable: false,
+    hasShadow: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
       contextIsolation: true,
@@ -33,6 +33,22 @@ function createWindow(): void {
 
   if (process.env.NODE_ENV === "development") {
     mainWindow.loadURL("http://localhost:5173");
+    if (process.env.NODE_ENV === "development") {
+      mainWindow.loadURL("http://localhost:5173");
+      mainWindow.webContents.openDevTools({ mode: "detach" });
+    } else {
+      mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
+    }
+
+    // 🆕 Désactive le zoom
+    mainWindow.webContents.on("did-finish-load", () => {
+      mainWindow?.webContents.setZoomFactor(1);
+      mainWindow?.webContents.setVisualZoomLevelLimits(1, 1);
+    });
+    // 🆕 Empêche le redimensionnement sur les bords de l'écran
+    mainWindow.on("will-resize", (e) => {
+      e.preventDefault();
+    });
     mainWindow.webContents.openDevTools({ mode: "detach" });
   } else {
     mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));

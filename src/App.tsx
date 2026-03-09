@@ -31,7 +31,9 @@ export default function App() {
   const isSpeakingRef = useRef(false);
   const isThinkingRef = useRef(false);
   const isUnlockedRef = useRef(false);
+  const isDraggingRef = useRef(false); // 🆕
   const dragStart = useRef({ mouseX: 0, mouseY: 0, winX: 0, winY: 0 });
+  const dragTimer = useRef<ReturnType<typeof setTimeout> | null>(null); // 🆕
   const messageTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -60,7 +62,6 @@ export default function App() {
       setMessage(text);
       setAvatarState(state);
 
-      //talking, waving ET happy déclenchent la voix
       const shouldSpeak =
         state === "talking" || state === "waving" || state === "happy";
 
@@ -126,36 +127,47 @@ export default function App() {
     };
   }, []); // eslint-disable-line
 
-  // ---- Drag ----
+  // ---- Drag avec délai anti-zoom ----
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
-    setIsDragging(true);
     dragStart.current = {
       mouseX: e.screenX,
       mouseY: e.screenY,
       winX: window.screenX,
       winY: window.screenY,
     };
+    // 🆕 Délai 200ms avant d'activer le drag
+    dragTimer.current = setTimeout(() => {
+      isDraggingRef.current = true;
+      setIsDragging(true);
+    }, 200);
   };
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
-      if (!isDragging) return;
+      if (!isDraggingRef.current) return; // 🆕 utilise la ref
       const dx = e.screenX - dragStart.current.mouseX;
       const dy = e.screenY - dragStart.current.mouseY;
+      // 🆕 Bouge seulement si déplacement > 5px
+      if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
       (window as any).navi?.moveWindow(
         dragStart.current.winX + dx,
         dragStart.current.winY + dy
       );
     };
-    const onUp = () => setIsDragging(false);
+    const onUp = () => {
+      // 🆕 Annule le timer si on relâche avant 200ms
+      if (dragTimer.current) clearTimeout(dragTimer.current);
+      isDraggingRef.current = false;
+      setIsDragging(false);
+    };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
     return () => {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };
-  }, [isDragging]);
+  }, []); // 🆕 plus de dépendance isDragging
 
   // ---- Clic sur l'avatar ----
   const handleAvatarClick = () => {
@@ -180,6 +192,8 @@ export default function App() {
         } ${isThinking ? "thinking" : ""}`}
         onMouseDown={handleMouseDown}
         onClick={handleAvatarClick}
+        onDragStart={(e) => e.preventDefault()}
+        draggable={false}
       >
         <Avatar state={avatarState} />
       </div>

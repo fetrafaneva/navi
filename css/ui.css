@@ -1,7 +1,17 @@
 /* ================================
    ui.css — Boutons & contrôles
    ================================ */
+* {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
 
+html,
+body {
+  zoom: 1 !important;
+  touch-action: none;
+}
 .controls {
   display: flex;
   gap: 10px;
