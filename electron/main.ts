@@ -1,9 +1,9 @@
 import { app, BrowserWindow, ipcMain, screen } from "electron";
 import * as path from "path";
 import * as dotenv from "dotenv";
-import { fileURLToPath } from "url"; // 🆕
+import { fileURLToPath } from "url";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// 🆕 Remplace __dirname pour les ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config();
@@ -16,13 +16,13 @@ function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 700,
-    x: Math.floor((width - 800) / 2), // centré horizontalement
-    y: Math.floor((height - 700) / 2), // centré verticalement
-    transparent: false, // ← désactive la transparence pour mieux voir
-    frame: true, // ← ajoute une bordure pour les tests
-    alwaysOnTop: false, // ← plus utile pour les tests
-    skipTaskbar: false, // ← visible dans la barre des tâches
-    resizable: true, // ← redimensionnable
+    x: Math.floor((width - 800) / 2),
+    y: Math.floor((height - 700) / 2),
+    transparent: false,
+    frame: true,
+    alwaysOnTop: false,
+    skipTaskbar: false,
+    resizable: true,
     hasShadow: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
@@ -46,34 +46,31 @@ function createWindow(): void {
     app.quit();
   });
 
-  // ✅ Claude dans Node.js — zéro CORS
+  // Dans createWindow(), remplace le handler :
   ipcMain.handle("claude-ask", async (_event, { messages, context }) => {
     try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "x-api-key": process.env.CLAUDE_API_KEY || "",
-          "Content-Type": "application/json",
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 150,
-          system: `Tu es Navi, une assistante anime mignonne sur le bureau Windows.
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash",
+        systemInstruction: `Tu es Navi, une assistante anime mignonne sur le bureau Windows.
 Tu parles en français, de façon courte et amicale (2-3 phrases max).
 Utilise des emojis avec modération. Sois utile et positive !
 Contexte : ${context || "L'utilisateur utilise son ordinateur."}`,
-          messages,
-        }),
       });
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error?.message || response.statusText);
-      }
-      const data = await response.json();
-      return { success: true, reply: data.content[0].text };
+
+      const history = messages.slice(0, -1).map((m: any) => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }],
+      }));
+
+      const chat = model.startChat({ history });
+      const lastMessage = messages[messages.length - 1].content;
+      const result = await chat.sendMessage(lastMessage);
+      const reply = result.response.text();
+
+      return { success: true, reply };
     } catch (error: any) {
-      console.error("[Claude] Erreur :", error.message);
+      console.error("[Gemini] Erreur :", error.message);
       return { success: false, error: error.message };
     }
   });

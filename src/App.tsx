@@ -6,15 +6,16 @@ import { speak, estimateSpeakDuration } from "./components/VoiceService";
 import { askClaude, clearHistory } from "./components/ClaudeService";
 
 const GREETINGS = [
-  "Salut ! Je suis Navi, ton assistante ! ✨",
-  "Bonjour ! Comment puis-je t'aider ? 💫",
-  "Hé ! Pose-moi une question ! 🌸",
+  "Salut ! Je suis Navi, ton assistante !",
+  "Bonjour ! Comment puis-je t'aider ?",
+  "Hé ! Pose-moi une question !",
 ];
 
 const IDLE_MESSAGES = [
-  "Je suis là si tu as besoin... 💤",
-  "Psst... parle-moi ! 👀",
-  "Tout va bien ? Je veille sur toi~ 🌙",
+  "Je suis là si tu as besoin...",
+  "Psst... parle-moi !",
+  "Tout va bien ? Je veille sur toi~",
+  "Are you ok ?",
 ];
 
 export type AvatarState = "idle" | "talking" | "thinking" | "happy" | "waving";
@@ -43,6 +44,7 @@ export default function App() {
     setIsThinking(val);
   };
 
+  // ---- Déverrouille l'audio au premier clic ----
   const unlockAudio = useCallback(() => {
     if (isUnlockedRef.current) return;
     isUnlockedRef.current = true;
@@ -51,17 +53,18 @@ export default function App() {
     ctx.resume().then(() => ctx.close());
   }, []);
 
+  // ---- Affiche un message + parle ----
   const showMessage = useCallback(
     async (text: string, state: AvatarState = "talking", duration?: number) => {
       if (messageTimer.current) clearTimeout(messageTimer.current);
       setMessage(text);
       setAvatarState(state);
 
-      if (
-        isUnlockedRef.current &&
-        !isSpeakingRef.current &&
-        (state === "talking" || state === "waving")
-      ) {
+      //talking, waving ET happy déclenchent la voix
+      const shouldSpeak =
+        state === "talking" || state === "waving" || state === "happy";
+
+      if (isUnlockedRef.current && !isSpeakingRef.current && shouldSpeak) {
         setSpeaking(true);
         setAvatarState("talking");
         await speak(
@@ -84,12 +87,13 @@ export default function App() {
     []
   );
 
+  // ---- Envoie un message à Claude ----
   const handleUserMessage = useCallback(
     async (userText: string) => {
       if (isThinkingRef.current || isSpeakingRef.current) return;
       setThinking(true);
       setAvatarState("thinking");
-      setMessage("Hmm, laisse-moi réfléchir... 🤔");
+      setMessage("Hmm, laisse-moi réfléchir...");
       const reply = await askClaude(userText);
       setThinking(false);
       await showMessage(reply, "talking");
@@ -97,11 +101,13 @@ export default function App() {
     [showMessage]
   );
 
+  // ---- Bienvenue ----
   useEffect(() => {
     const greeting = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
     setTimeout(() => showMessage(greeting, "waving"), 800);
   }, []); // eslint-disable-line
 
+  // ---- Messages idle ----
   useEffect(() => {
     const schedule = () => {
       const delay = 20000 + Math.random() * 20000;
@@ -109,7 +115,7 @@ export default function App() {
         if (!isSpeakingRef.current && !isThinkingRef.current) {
           const msg =
             IDLE_MESSAGES[Math.floor(Math.random() * IDLE_MESSAGES.length)];
-          showMessage(msg, "idle", 4000);
+          showMessage(msg, "talking", 4000);
         }
         schedule();
       }, delay);
@@ -120,6 +126,7 @@ export default function App() {
     };
   }, []); // eslint-disable-line
 
+  // ---- Drag ----
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
     setIsDragging(true);
@@ -150,13 +157,14 @@ export default function App() {
     };
   }, [isDragging]);
 
+  // ---- Clic sur l'avatar ----
   const handleAvatarClick = () => {
     unlockAudio();
     if (isSpeakingRef.current || isThinkingRef.current) return;
     const reactions = [
-      { msg: "Tu m'as cliqué ! Hehe~ 😊", state: "happy" as AvatarState },
-      { msg: "Pose-moi une question ! 💬", state: "waving" as AvatarState },
-      { msg: "Je suis là pour toi ! 💪", state: "happy" as AvatarState },
+      { msg: "Tu m'as cliqué ! Hehe~", state: "talking" as AvatarState },
+      { msg: "Pose-moi une question !", state: "waving" as AvatarState },
+      { msg: "Je suis là pour toi !", state: "talking" as AvatarState },
     ];
     const r = reactions[Math.floor(Math.random() * reactions.length)];
     showMessage(r.msg, r.state);
@@ -165,6 +173,7 @@ export default function App() {
   return (
     <div className="app-container" onClick={unlockAudio}>
       {message && <DialogBubble message={message} />}
+
       <div
         className={`avatar-wrapper ${isDragging ? "dragging" : ""} ${
           isSpeaking ? "speaking" : ""
@@ -174,26 +183,31 @@ export default function App() {
       >
         <Avatar state={avatarState} />
       </div>
+
       {isSpeaking && <div className="sound-indicator">🔊</div>}
       {isThinking && <div className="sound-indicator">💭</div>}
+
       {!isUnlocked && (
         <div className="unlock-hint">👆 Clique pour activer la voix</div>
       )}
+
       <InputBar
         onSend={handleUserMessage}
         disabled={isSpeaking || isThinking}
       />
+
       <button
         className="reset-btn"
         onClick={(e) => {
           e.stopPropagation();
           clearHistory();
-          showMessage("Nouvelle conversation ! 😊", "happy");
+          showMessage("Nouvelle conversation !", "talking");
         }}
         title="Réinitialiser"
       >
         ↺
       </button>
+
       <button
         className="close-btn"
         onClick={() => (window as any).navi?.quitApp()}
