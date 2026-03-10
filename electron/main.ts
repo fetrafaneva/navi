@@ -28,6 +28,7 @@ function createWindow(): void {
       preload: path.join(__dirname, "preload.mjs"),
       contextIsolation: true,
       nodeIntegration: false,
+      autoplayPolicy: "no-user-gesture-required",
     },
   });
 
@@ -40,12 +41,12 @@ function createWindow(): void {
       mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
     }
 
-    // 🆕 Désactive le zoom
+    // Désactive le zoom
     mainWindow.webContents.on("did-finish-load", () => {
       mainWindow?.webContents.setZoomFactor(1);
       mainWindow?.webContents.setVisualZoomLevelLimits(1, 1);
     });
-    // 🆕 Empêche le redimensionnement sur les bords de l'écran
+    // Empêche le redimensionnement sur les bords de l'écran
     mainWindow.on("will-resize", (e) => {
       e.preventDefault();
     });
@@ -91,7 +92,7 @@ Contexte : ${context || "L'utilisateur utilise son ordinateur."}`,
     }
   });
 
-  // ✅ ElevenLabs dans Node.js — zéro CORS
+  // ElevenLabs dans Node.js — zéro CORS
   ipcMain.handle("tts-speak", async (_event, { text }) => {
     try {
       const voiceId = process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM";

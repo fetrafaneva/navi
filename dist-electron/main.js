@@ -1583,7 +1583,8 @@ function createWindow() {
     webPreferences: {
       preload: path$1.join(__dirname$1, "preload.mjs"),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      autoplayPolicy: "no-user-gesture-required"
     }
   });
   if (process.env.NODE_ENV === "development") {

@@ -31,9 +31,9 @@ export default function App() {
   const isSpeakingRef = useRef(false);
   const isThinkingRef = useRef(false);
   const isUnlockedRef = useRef(false);
-  const isDraggingRef = useRef(false); // 🆕
+  const isDraggingRef = useRef(false);
   const dragStart = useRef({ mouseX: 0, mouseY: 0, winX: 0, winY: 0 });
-  const dragTimer = useRef<ReturnType<typeof setTimeout> | null>(null); // 🆕
+  const dragTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const messageTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -102,6 +102,16 @@ export default function App() {
     [showMessage]
   );
 
+  useEffect(() => {
+    const ctx = new AudioContext();
+    ctx.resume().then(() => {
+      ctx.close();
+      isUnlockedRef.current = true;
+      setIsUnlocked(true);
+      console.log("[Navi] Audio déverrouillé au démarrage ✅");
+    });
+  }, []);
+
   // ---- Bienvenue ----
   useEffect(() => {
     const greeting = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
@@ -136,7 +146,7 @@ export default function App() {
       winX: window.screenX,
       winY: window.screenY,
     };
-    // 🆕 Délai 200ms avant d'activer le drag
+    // Délai 200ms avant d'activer le drag
     dragTimer.current = setTimeout(() => {
       isDraggingRef.current = true;
       setIsDragging(true);
@@ -145,10 +155,10 @@ export default function App() {
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
-      if (!isDraggingRef.current) return; // 🆕 utilise la ref
+      if (!isDraggingRef.current) return; // utilise la ref
       const dx = e.screenX - dragStart.current.mouseX;
       const dy = e.screenY - dragStart.current.mouseY;
-      // 🆕 Bouge seulement si déplacement > 5px
+      // Bouge seulement si déplacement > 5px
       if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
       (window as any).navi?.moveWindow(
         dragStart.current.winX + dx,
@@ -156,7 +166,7 @@ export default function App() {
       );
     };
     const onUp = () => {
-      // 🆕 Annule le timer si on relâche avant 200ms
+      // Annule le timer si on relâche avant 200ms
       if (dragTimer.current) clearTimeout(dragTimer.current);
       isDraggingRef.current = false;
       setIsDragging(false);
@@ -167,7 +177,7 @@ export default function App() {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };
-  }, []); // 🆕 plus de dépendance isDragging
+  }, []);
 
   // ---- Clic sur l'avatar ----
   const handleAvatarClick = () => {
@@ -190,8 +200,6 @@ export default function App() {
         className={`avatar-wrapper ${isDragging ? "dragging" : ""} ${
           isSpeaking ? "speaking" : ""
         } ${isThinking ? "thinking" : ""}`}
-        onMouseDown={handleMouseDown}
-        onClick={handleAvatarClick}
         onDragStart={(e) => e.preventDefault()}
         draggable={false}
       >
