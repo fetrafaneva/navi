@@ -26,7 +26,6 @@ export default function App() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(false);
 
   const isSpeakingRef = useRef(false);
   const isThinkingRef = useRef(false);
@@ -50,7 +49,6 @@ export default function App() {
   const unlockAudio = useCallback(() => {
     if (isUnlockedRef.current) return;
     isUnlockedRef.current = true;
-    setIsUnlocked(true);
     const ctx = new AudioContext();
     ctx.resume().then(() => ctx.close());
   }, []);
@@ -107,8 +105,7 @@ export default function App() {
     ctx.resume().then(() => {
       ctx.close();
       isUnlockedRef.current = true;
-      setIsUnlocked(true);
-      console.log("[Navi] Audio déverrouillé au démarrage ✅");
+      console.log("[Navi] Audio déverrouillé au démarrage");
     });
   }, []);
 
@@ -137,22 +134,6 @@ export default function App() {
     };
   }, []); // eslint-disable-line
 
-  // ---- Drag avec délai anti-zoom ----
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button !== 0) return;
-    dragStart.current = {
-      mouseX: e.screenX,
-      mouseY: e.screenY,
-      winX: window.screenX,
-      winY: window.screenY,
-    };
-    // Délai 200ms avant d'activer le drag
-    dragTimer.current = setTimeout(() => {
-      isDraggingRef.current = true;
-      setIsDragging(true);
-    }, 200);
-  };
-
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       if (!isDraggingRef.current) return; // utilise la ref
@@ -179,19 +160,6 @@ export default function App() {
     };
   }, []);
 
-  // ---- Clic sur l'avatar ----
-  const handleAvatarClick = () => {
-    unlockAudio();
-    if (isSpeakingRef.current || isThinkingRef.current) return;
-    const reactions = [
-      { msg: "Tu m'as cliqué ! Hehe~", state: "talking" as AvatarState },
-      { msg: "Pose-moi une question !", state: "waving" as AvatarState },
-      { msg: "Je suis là pour toi !", state: "talking" as AvatarState },
-    ];
-    const r = reactions[Math.floor(Math.random() * reactions.length)];
-    showMessage(r.msg, r.state);
-  };
-
   return (
     <div className="app-container" onClick={unlockAudio}>
       {message && <DialogBubble message={message} />}
@@ -208,10 +176,6 @@ export default function App() {
 
       {isSpeaking && <div className="sound-indicator">🔊</div>}
       {isThinking && <div className="sound-indicator">💭</div>}
-
-      {!isUnlocked && (
-        <div className="unlock-hint">👆 Clique pour activer la voix</div>
-      )}
 
       <InputBar
         onSend={handleUserMessage}
