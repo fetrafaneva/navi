@@ -6,7 +6,11 @@ interface AvatarProps {
 
 export default function Avatar({ state }: AvatarProps) {
   return (
-    <div className={`avatar ${state}`}>
+    <div
+      className={`avatar ${state}`}
+      onDragStart={(e) => e.preventDefault()}
+      draggable={false}
+    >
       <div className="avatar__shadow" />
       <div className="character">
         <div className="hair-back" />

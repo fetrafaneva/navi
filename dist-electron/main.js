@@ -1570,24 +1570,38 @@ let mainWindow = null;
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 700,
-    x: Math.floor((width - 800) / 2),
-    y: Math.floor((height - 700) / 2),
-    transparent: false,
-    frame: true,
-    alwaysOnTop: false,
-    skipTaskbar: false,
-    resizable: true,
-    hasShadow: true,
+    width: 220,
+    height: 420,
+    x: width - 240,
+    y: height - 440,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    resizable: false,
+    hasShadow: false,
     webPreferences: {
       preload: path$1.join(__dirname$1, "preload.mjs"),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      autoplayPolicy: "no-user-gesture-required"
     }
   });
   if (process.env.NODE_ENV === "development") {
     mainWindow.loadURL("http://localhost:5173");
+    if (process.env.NODE_ENV === "development") {
+      mainWindow.loadURL("http://localhost:5173");
+      mainWindow.webContents.openDevTools({ mode: "detach" });
+    } else {
+      mainWindow.loadFile(path$1.join(__dirname$1, "../dist/index.html"));
+    }
+    mainWindow.webContents.on("did-finish-load", () => {
+      mainWindow == null ? void 0 : mainWindow.webContents.setZoomFactor(1);
+      mainWindow == null ? void 0 : mainWindow.webContents.setVisualZoomLevelLimits(1, 1);
+    });
+    mainWindow.on("will-resize", (e) => {
+      e.preventDefault();
+    });
     mainWindow.webContents.openDevTools({ mode: "detach" });
   } else {
     mainWindow.loadFile(path$1.join(__dirname$1, "../dist/index.html"));
