@@ -6,16 +6,16 @@ import { speak, estimateSpeakDuration } from "./components/VoiceService";
 import { askClaude, clearHistory } from "./components/ClaudeService";
 
 const GREETINGS = [
-  "Salut ! Je suis Navi, ton assistante !",
-  "Bonjour ! Comment puis-je t'aider ?",
-  "Hé ! Pose-moi une question !",
+  "Hey! I'm Navi, your assistant!",
+  "Hello! How can I help you?",
+  "Hi! Ask me anything!",
 ];
 
 const IDLE_MESSAGES = [
-  "Je suis là si tu as besoin...",
-  "Psst... parle-moi !",
-  "Tout va bien ? Je veille sur toi~",
-  "Are you ok ?",
+  "I'm here if you need me...",
+  "Psst... talk to me!",
+  "Everything okay? I'm watching over you~",
+  "Are you ok?",
 ];
 
 export type AvatarState = "idle" | "talking" | "thinking" | "happy" | "waving";
@@ -92,7 +92,7 @@ export default function App() {
       if (isThinkingRef.current || isSpeakingRef.current) return;
       setThinking(true);
       setAvatarState("thinking");
-      setMessage("Hmm, laisse-moi réfléchir...");
+      setMessage("Hmm, let me think...");
       const reply = await askClaude(userText);
       setThinking(false);
       await showMessage(reply, "talking");
