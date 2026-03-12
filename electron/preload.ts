@@ -1,15 +1,18 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("navi", {
-  // Phase 1
+  // window
   moveWindow: (x: number, y: number) =>
     ipcRenderer.send("move-window", { x, y }),
   quitApp: () => ipcRenderer.send("quit-app"),
 
-  // Phase 2 — TTS
+  // TTS
   ttsSpeak: (text: string) => ipcRenderer.invoke("tts-speak", { text }),
 
-  // Phase 3 — Claude
+  // Claude
   claudeAsk: (messages: any[], context?: string) =>
     ipcRenderer.invoke("claude-ask", { messages, context }),
+
+  // newsapi
+  fetchNews: (query: string) => ipcRenderer.invoke("fetch-news", { query }),
 });
