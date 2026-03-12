@@ -119,6 +119,31 @@ Contexte : ${context || "L'utilisateur utilise son ordinateur."}`,
       return { success: false, error: error.message };
     }
   });
+
+  // NewsAPI dans Node.js — zéro CORS
+  ipcMain.handle("fetch-news", async (_event, { query }) => {
+    try {
+      const q = encodeURIComponent(query || "world");
+      const response = await fetch(
+        `https://newsapi.org/v2/everything?q=${q}&language=en&sortBy=publishedAt&pageSize=5&apiKey=${process.env.NEWS_API_KEY}`
+      );
+      if (!response.ok) throw new Error(response.statusText);
+      const data = await response.json();
+
+      if (data.status !== "ok" || !data.articles?.length) {
+        return { success: false, error: "No articles found" };
+      }
+
+      // Résume les 5 titres
+      const headlines = data.articles
+        .map((a: any, i: number) => `${i + 1}. ${a.title}`)
+        .join("\n");
+
+      return { success: true, headlines };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  });
 }
 
 app.whenReady().then(() => {
