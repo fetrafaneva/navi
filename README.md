@@ -40,3 +40,24 @@
 | Linting | ESLint |
 
 ---
+
+## Required API Keys
+
+Before running the app, you need to obtain the following API keys:
+
+| Service | Where to get it | Environment variable |
+|---|---|---|
+| **Google Gemini** | [Google AI Studio](https://aistudio.google.com/app/apikey) | `VITE_GEMINI_API_KEY` |
+| **ElevenLabs** | [ElevenLabs Dashboard](https://elevenlabs.io/) | `VITE_ELEVENLABS_API_KEY` |
+| **NewsAPI** | [newsapi.org](https://newsapi.org/register) | `VITE_NEWS_API_KEY` |
+
+Create a `.env` file at the root of the project:
+```env
+VITE_GEMINI_API_KEY=your_google_gemini_key_here
+VITE_ELEVENLABS_API_KEY=your_elevenlabs_key_here
+VITE_NEWS_API_KEY=your_newsapi_key_here
+```
+
+>  Never commit your `.env` file. It is already listed in `.gitignore`.
+
+---
