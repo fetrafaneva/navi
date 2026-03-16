@@ -110,3 +110,40 @@ Then start the desktop app:
 ```bash
 npm run electron:dev
 ```
+### Production build (web)
+```bash
+npm run build
+```
+
+### Package as desktop installer
+```bash
+npm run electron:build
+```
+
+The installer will be generated in the `dist/` folder.
+
+---
+
+## Project Structure
+```
+navi/
+├── electron/                 # Electron main process
+│   ├── main.ts               # App entry point (Electron)
+│   └── preload.ts            # Preload script (context bridge)
+├── src/                      # React + TypeScript source
+│   ├── components/           # UI components (avatar, ClaudeService, news…)
+│   ├── App.tsx
+│   └── main.tsx
+├── public/                   # Static assets
+├── css/                      # Additional styles
+├── js/                       # Extra JS utilities
+├── dist-electron/            # Electron build output (generated)
+├── electron-builder.json5    # Desktop packaging config
+├── vite.config.ts
+├── tsconfig.json
+├── .env                      #  Your API keys (not committed)
+├── package.json
+└── server.js                 # Optional dev server
+```
+
+---
