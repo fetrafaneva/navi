@@ -61,3 +61,52 @@ VITE_NEWS_API_KEY=your_newsapi_key_here
 >  Never commit your `.env` file. It is already listed in `.gitignore`.
 
 ---
+
+## Installation
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) v18 or higher
+- npm v9 or higher
+
+### Steps
+```bash
+# 1. Clone the repository
+git clone https://github.com/fetrafaneva/navi.git
+cd navi
+
+# 2. Install dependencies
+npm install
+
+# 3. Create and fill your .env file (see above)
+cp .env.example .env
+```
+
+---
+
+## Running the App
+
+### Web mode (quick testing)
+```bash
+npm run dev
+```
+
+Open your browser at [http://localhost:5173](http://localhost:5173)
+
+### Desktop mode (Electron)
+
+> **First time only:** Install Electron dependencies if not already present.
+```bash
+npm install electron electron-builder concurrently wait-on --save-dev
+```
+
+Add these scripts to the `"scripts"` section of your `package.json`:
+```json
+"electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+"electron:build": "npm run build && electron-builder"
+```
+
+Then start the desktop app:
+```bash
+npm run electron:dev
+```
