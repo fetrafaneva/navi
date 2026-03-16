@@ -13,3 +13,30 @@
 </div>
 
 ---
+
+## Features
+
+-  **Voice synthesis** via the [ElevenLabs API](https://elevenlabs.io/) — Navi speaks to you with a realistic AI voice
+-  **Smart Q&A** powered by [Google Generative AI (Gemini)](https://ai.google.dev/) — ask anything, get intelligent answers
+-  **Live news feed** via [NewsAPI](https://newsapi.org/) — stay updated with the latest headlines
+-  **Desktop app** built with Electron — runs natively on Windows, macOS, and Linux
+-  **Blazing-fast dev experience** with Vite + HMR
+-  **Type-safe** codebase with TypeScript
+-  **Interactive avatar UI** — built with React 18
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| UI Framework | React 18 |
+| Language | TypeScript |
+| Build Tool | Vite |
+| Desktop Runtime | Electron |
+| AI Chat | Google Generative AI (`@google/generative-ai`) |
+| Voice Synthesis | ElevenLabs API |
+| News Data | NewsAPI |
+| Linting | ESLint |
+
+---
