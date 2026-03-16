@@ -147,3 +147,33 @@ navi/
 ```
 
 ---
+
+## API Integration Overview
+
+### Google Generative AI (Gemini)
+
+Used to process user questions and generate intelligent, contextual responses.
+```ts
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+const result = await model.generateContent(userMessage);
+```
+
+### ElevenLabs Voice Synthesis
+
+Used to convert Navi's text responses into realistic spoken audio.
+```ts
+const response = await fetch(
+  `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+  {
+    method: "POST",
+    headers: {
+      "xi-api-key": import.meta.env.VITE_ELEVENLABS_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ text: naviResponse }),
+  }
+);
+```
