@@ -177,3 +177,20 @@ const response = await fetch(
   }
 );
 ```
+### NewsAPI
+
+Used to fetch the latest news headlines to display in the app.
+```ts
+const res = await fetch(
+  `https://newsapi.org/v2/top-headlines?country=us&apiKey=${import.meta.env.VITE_NEWS_API_KEY}`
+);
+const data = await res.json();
+```
+
+---
+
+## Contributing
+
+Contributions are welcome! Please fork the repository and submit a pull request.
+
+If this project helps you, consider starring the repository!
