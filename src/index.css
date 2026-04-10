@@ -66,3 +66,109 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* =========================
+   Input Bar Container
+========================= */
+.input-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1f1f2e;
+  padding: 8px 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.25s ease;
+}
+
+/* Glow quand actif */
+.input-bar:focus-within {
+  border: 1px solid #7c3aed;
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.4);
+}
+
+/* =========================
+   Input Field
+========================= */
+.input-bar__field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 15px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+/* Placeholder */
+.input-bar__field::placeholder {
+  color: #9ca3af;
+}
+
+/* Focus */
+.input-bar__field:focus {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Disabled */
+.input-bar__field:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================
+   Button
+========================= */
+.input-bar__btn {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Hover */
+.input-bar__btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.5);
+}
+
+/* Click */
+.input-bar__btn:active {
+  transform: scale(0.95);
+}
+
+/* Disabled */
+.input-bar__btn:disabled {
+  background: #555;
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+/* =========================
+   Responsive (optionnel)
+========================= */
+@media (max-width: 600px) {
+  .input-bar {
+    padding: 6px 8px;
+  }
+
+  .input-bar__field {
+    font-size: 14px;
+  }
+
+  .input-bar__btn {
+    padding: 8px 10px;
+    font-size: 16px;
+  }
+}
