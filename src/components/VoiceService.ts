@@ -32,5 +32,7 @@ export async function speak(
 }
 
 export function estimateSpeakDuration(text: string): number {
-  return Math.max(text.trim().split(/\s+/).length * (60 / 130) * 1000, 800);
+  const words = text.trim().split(/\s+/).length;
+
+  return Math.max(words * 400, 2000);
 }
