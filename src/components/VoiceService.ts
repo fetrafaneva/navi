@@ -3,26 +3,26 @@ export async function speak(
   onStart?: () => void,
   onEnd?: () => void
 ): Promise<void> {
-  console.log("[VoiceService] speak() appelé ✅"); // 🆕
+  console.log("[VoiceService] speak() appelé ✅");
+
   try {
     onStart?.();
-    const result = await (window as any).navi.ttsSpeak(text);
-    console.log("[VoiceService] TTS result:", result.success); // 🆕
 
-    if (!result.success) throw new Error(result.error);
+    const result = await (window as any).navi.ttsSpeak(text);
+
+    if (!result.success) {
+      console.warn("[VoiceService] TTS erreur :", result.error);
+      return; // on stop la voix MAIS pas l'app
+    }
 
     const audio = new Audio(`data:audio/mpeg;base64,${result.audio}`);
     audio.volume = 1.0;
-    console.log("[VoiceService] Tentative play..."); // 🆕
-    await audio.play();
-    console.log("[VoiceService] play() OK ✅"); // 🆕
 
-    await new Promise<void>((resolve, reject) => {
-      audio.onended = () => {
-        console.log("[VoiceService] audio terminé ✅");
-        resolve();
-      };
-      audio.onerror = () => reject();
+    await audio.play();
+
+    await new Promise<void>((resolve) => {
+      audio.onended = () => resolve();
+      audio.onerror = () => resolve(); // ⚠️ ne jamais reject
     });
   } catch (error) {
     console.error("[VoiceService] erreur :", error);

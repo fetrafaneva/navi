@@ -1662,6 +1662,24 @@ Contexte : ${context || "L'utilisateur utilise son ordinateur."}`
       return { success: false, error: error.message };
     }
   });
+  ipcMain.handle("fetch-news", async (_event, { query }) => {
+    var _a;
+    try {
+      const q = encodeURIComponent(query || "world");
+      const response = await fetch(
+        `https://newsapi.org/v2/everything?q=${q}&language=en&sortBy=publishedAt&pageSize=5&apiKey=${process.env.NEWS_API_KEY}`
+      );
+      if (!response.ok) throw new Error(response.statusText);
+      const data = await response.json();
+      if (data.status !== "ok" || !((_a = data.articles) == null ? void 0 : _a.length)) {
+        return { success: false, error: "No articles found" };
+      }
+      const headlines = data.articles.map((a, i) => `${i + 1}. ${a.title}`).join("\n");
+      return { success: true, headlines };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
 }
 app.whenReady().then(() => {
   createWindow();
