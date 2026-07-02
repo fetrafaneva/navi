@@ -69,9 +69,8 @@ function createWindow(): void {
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
       const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash",
-        systemInstruction: `Tu es Navi, une assistante anime mignonne sur le bureau Windows.
-Tu parles en français, de façon courte et amicale (2-3 phrases max).
-Utilise des emojis avec modération. Sois utile et positive !
+        systemInstruction: `Tu es Navi, une assistante anime mignonne.
+Tu parles en français, de façon courte et amicale (2-3 phrases max). Sois utile et positive !
 Contexte : ${context || "L'utilisateur utilise son ordinateur."}`,
       });
 

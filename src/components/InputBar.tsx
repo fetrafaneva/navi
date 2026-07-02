@@ -1,8 +1,3 @@
-// ================================
-// InputBar.tsx
-// Barre de saisie pour parler à Navi
-// ================================
-
 import { useState, KeyboardEvent } from "react";
 
 interface InputBarProps {
@@ -12,12 +7,15 @@ interface InputBarProps {
 
 export default function InputBar({ onSend, disabled }: InputBarProps) {
   const [text, setText] = useState("");
+  const [justSent, setJustSent] = useState(false);
 
   const handleSend = () => {
     const trimmed = text.trim();
     if (!trimmed || disabled) return;
     onSend(trimmed);
     setText("");
+    setJustSent(true);
+    setTimeout(() => setJustSent(false), 200);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -37,7 +35,7 @@ export default function InputBar({ onSend, disabled }: InputBarProps) {
         maxLength={200}
       />
       <button
-        className="input-bar__btn"
+        className={`input-bar__btn ${justSent ? "sent" : ""}`}
         onClick={handleSend}
         disabled={disabled || !text.trim()}
         title="Envoyer"
