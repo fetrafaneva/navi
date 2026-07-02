@@ -2,7 +2,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Avatar from "./components/Avatar";
 import DialogBubble from "./components/DialogBubble";
 import InputBar from "./components/InputBar";
-import { speak, estimateSpeakDuration } from "./components/VoiceService";
+import {
+  speak,
+  estimateSpeakDuration,
+  preloadVoices,
+} from "./components/VoiceService";
 import { askClaude, clearHistory } from "./components/ClaudeService";
 
 const GREETINGS = [
@@ -25,12 +29,12 @@ export default function App() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(false); // 🆕 audio déverrouillé
+  const [isUnlocked, setIsUnlocked] = useState(false); // audio déverrouillé
 
   // Refs pour éviter les bugs de closure
   const isSpeakingRef = useRef(false);
   const isThinkingRef = useRef(false);
-  const isUnlockedRef = useRef(false); // 🆕
+  const isUnlockedRef = useRef(false);
   const dragStart = useRef({ mouseX: 0, mouseY: 0, winX: 0, winY: 0 });
   const messageTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -45,7 +49,7 @@ export default function App() {
     setIsThinking(val);
   };
 
-  // 🆕 Déverrouille l'audio au premier clic
+  // Déverrouille l'audio au premier clic
   const unlockAudio = useCallback(() => {
     if (isUnlockedRef.current) return;
     isUnlockedRef.current = true;
@@ -110,8 +114,12 @@ export default function App() {
     [showMessage]
   );
 
-  // ---- Bienvenue au démarrage ----
+  // ---- Préchargement des voix + Bienvenue au démarrage ----
   useEffect(() => {
+    preloadVoices().then(() => {
+      console.log("[Navi] Voix système chargées ✅");
+    });
+
     const greeting = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
     // Affiche le message sans voix (pas encore déverrouillé)
     setTimeout(() => showMessage(greeting, "waving"), 800);
@@ -184,7 +192,7 @@ export default function App() {
   };
 
   return (
-    // 🆕 Déverrouille l'audio sur n'importe quel clic dans l'app
+    // Déverrouille l'audio sur n'importe quel clic dans l'app
     <div className="app-container" onClick={unlockAudio}>
       {message && <DialogBubble message={message} />}
 
@@ -201,7 +209,7 @@ export default function App() {
       {isSpeaking && <div className="sound-indicator">🔊</div>}
       {isThinking && <div className="sound-indicator">💭</div>}
 
-      {/* 🆕 Hint si audio pas encore déverrouillé */}
+      {/* Hint si audio pas encore déverrouillé */}
       {!isUnlocked && (
         <div className="unlock-hint">👆 Clique pour activer la voix</div>
       )}
