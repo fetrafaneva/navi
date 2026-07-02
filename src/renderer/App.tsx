@@ -10,15 +10,15 @@ import {
 import { askClaude, clearHistory } from "./components/ClaudeService";
 
 const GREETINGS = [
-  "Salut ! Je suis Navi, ton assistante ! ✨",
-  "Bonjour ! Comment puis-je t'aider ? 💫",
-  "Hé ! Pose-moi une question ! 🌸",
+  "Salut ! Je suis Navi, ton assistante ! ",
+  "Bonjour ! Comment puis-je t'aider ? ",
+  "Hé ! Pose-moi une question ! ",
 ];
 
 const IDLE_MESSAGES = [
-  "Je suis là si tu as besoin... 💤",
-  "Psst... parle-moi ! 👀",
-  "Tout va bien ? Je veille sur toi~ 🌙",
+  "Je suis là si tu as besoin... ",
+  "Psst... parle-moi ! ",
+  "Tout va bien ? Je veille sur toi~ ",
 ];
 
 export type AvatarState = "idle" | "talking" | "thinking" | "happy" | "waving";
@@ -57,7 +57,7 @@ export default function App() {
     // Crée un contexte audio silencieux pour débloquer l'autoplay
     const ctx = new AudioContext();
     ctx.resume().then(() => ctx.close());
-    console.log("[Navi] Audio déverrouillé ✅");
+    console.log("[Navi] Audio déverrouillé ");
   }, []);
 
   // ---- Affiche un message + parle ----
@@ -104,7 +104,7 @@ export default function App() {
 
       setThinking(true);
       setAvatarState("thinking");
-      setMessage("Hmm, laisse-moi réfléchir... 🤔");
+      setMessage("Hmm, laisse-moi réfléchir... ");
 
       const reply = await askClaude(userText);
 
@@ -117,7 +117,7 @@ export default function App() {
   // ---- Préchargement des voix + Bienvenue au démarrage ----
   useEffect(() => {
     preloadVoices().then(() => {
-      console.log("[Navi] Voix système chargées ✅");
+      console.log("[Navi] Voix système chargées ");
     });
 
     const greeting = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
@@ -183,9 +183,9 @@ export default function App() {
     if (isSpeakingRef.current || isThinkingRef.current) return;
 
     const reactions = [
-      { msg: "Tu m'as cliqué ! Hehe~ 😊", state: "happy" as AvatarState },
-      { msg: "Pose-moi une question ! 💬", state: "waving" as AvatarState },
-      { msg: "Je suis là pour toi ! 💪", state: "happy" as AvatarState },
+      { msg: "Tu m'as cliqué ! Hehe~ ", state: "happy" as AvatarState },
+      { msg: "Pose-moi une question ! ", state: "waving" as AvatarState },
+      { msg: "Je suis là pour toi !", state: "happy" as AvatarState },
     ];
     const r = reactions[Math.floor(Math.random() * reactions.length)];
     showMessage(r.msg, r.state);
@@ -224,7 +224,7 @@ export default function App() {
         onClick={(e) => {
           e.stopPropagation();
           clearHistory();
-          showMessage("Nouvelle conversation ! 😊", "happy");
+          showMessage("Nouvelle conversation ! ", "happy");
         }}
         title="Réinitialiser"
       >
